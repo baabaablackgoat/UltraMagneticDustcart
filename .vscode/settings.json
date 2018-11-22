@@ -1,8 +1,8 @@
 {
     "files.eol": "\n",
-    "ev3devBrowser.download.exclude": "{**/.*,LICENSE,README.md}",
+    "ev3devBrowser.download.exclude": "{**/.*,LICENSE,README.md,ev3dev2}",
     "python.linting.pylintEnabled": true,
-    "python.pythonPath": "/usr/bin/python3",
+    "python.pythonPath": "C:\\Users\\nikit\\AppData\\Local\\Programs\\Python\\Python36-32\\python.exe",
     "python.linting.flake8Enabled": false,
     "python.linting.enabled": true
 }
