@@ -35,6 +35,11 @@ LightSensorRight.mode = 'REFLECT'
     Left/Right bei Schwarz 350, 600. AUCH IM TUNNEL BEI REFLECT
 '''
 
+"""
+    Motor.on_for_seconds(deine,mudda) unterbricht den Pythoncode!!!1!1!eins!
+
+"""
+
 def logdataInterval():
     def logdata():
         logdataInterval()
