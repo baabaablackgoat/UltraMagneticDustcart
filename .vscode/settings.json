@@ -1,0 +1,8 @@
+{
+    "files.eol": "\n",
+    "ev3devBrowser.download.exclude": "{**/.*,LICENSE,README.md}",
+    "python.linting.pylintEnabled": true,
+    "python.pythonPath": "/usr/bin/python3",
+    "python.linting.flake8Enabled": false,
+    "python.linting.enabled": true
+}
