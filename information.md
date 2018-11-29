@@ -1,6 +1,7 @@
 #Lichtsensoren
-Bei REFLECT bzw Farbsensor auf COL-AMBIENT sind lichter an.
-Middle bei Schwarz 10, weiß 30-40
+Bei REFLECT bzw Farbsensor auf COL-REFLECT sind ROTE Lichter an.
+Blaues Licht beim Farbsensor bedeutet COL-AMBIENT und scheint ungenaue Ergebnisse zurückzugeben.
+Middle bei Schwarz < 10, weiß 70-80
 Left/Right bei Schwarz 350, Weiß 600. AUCH IM TUNNEL BEI REFLECT
 ##Schwellwerte
 color sensor: white > 20
