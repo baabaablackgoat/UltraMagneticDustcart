@@ -32,7 +32,7 @@ LightSensorRight.mode = 'REFLECT'
 '''
     Bei REFLECT bzw Farbsensor auf COL-AMBIENT sind lichter an.
     Middle bei Schwarz 10, weiß 30-40
-    Left/Right bei Schwarz 350, 600. AUCH IM TUNNEL BEI REFLECT
+    Left/Right bei Schwarz 350, weiß 600. AUCH IM TUNNEL BEI REFLECT
 '''
 
 """
