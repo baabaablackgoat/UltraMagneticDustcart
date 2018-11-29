@@ -18,9 +18,9 @@ MOTOR_RIGHT = OUTPUT_B
 #motorBasket = Motor(OUTPUT_C)
 
 try:
-    LIGHT_LEFT = Sensor(INPUT_2)
+    LIGHT_LEFT = Sensor(INPUT_4)
     COLOR_MIDDLE = Sensor(INPUT_3)
-    LIGHT_RIGHT = Sensor(INPUT_4)    
+    LIGHT_RIGHT = Sensor(INPUT_2)    
     DISTANCE_FRONT = Sensor(INPUT_1)
 except Exception as e:
     print('Sensor not found: ' + str(e))
