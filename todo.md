@@ -1,3 +1,5 @@
-- Programm fixen
+- Lichtsensoren weiter auseinander
+- Lichtsensoren weiter hoch
+- Programm Edgecases
 - Stoßstange neu konzipieren
 - Ultraschallsensor
