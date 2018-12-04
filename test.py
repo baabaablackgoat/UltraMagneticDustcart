@@ -26,7 +26,7 @@ LightSensorLeft = Sensor(INPUT_4)
 LightSensorMiddle = Sensor(INPUT_3)
 LightSensorRight = Sensor(INPUT_2)
 LightSensorLeft.mode = 'REFLECT'
-LightSensorMiddle.mode = 'COL-AMBIENT'
+LightSensorMiddle.mode = 'COL-REFLECTf'
 LightSensorRight.mode = 'REFLECT'
 
 '''

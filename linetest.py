@@ -30,8 +30,8 @@ except Exception as e:
 LIGHT_LEFT.mode = LIGHT_RIGHT.mode = "REFLECT"
 COLOR_MIDDLE.mode = "COL-REFLECT"
 
-COLOR_THRESHOLD = 20
-LIGHT_THRESHOLD = 450
+COLOR_THRESHOLD = 170
+LIGHT_THRESHOLD = 350
 
 NORMAL_SPEED = 20
 
@@ -48,17 +48,47 @@ def drive_normal_speed():
 
 
 def is_color_white(sensor):
-    if sensor.value() >= COLOR_THRESHOLD:
-        return True
-    else:
-        return False
+    return sensor.value() >= COLOR_THRESHOLD
 
 
 def is_light_white(sensor):
-    if sensor.value() >= LIGHT_THRESHOLD:
-        return True
+    return sensor.value() >= LIGHT_THRESHOLD
+
+
+def sensor_percentage(sensor, position):
+    if position == "left":
+        if sensor.value() < 228:
+            return 0
+        elif sensor.value() < 330:
+            return 0.25
+        elif sensor.value() < 375:
+            return 0.5
+        elif sensor.value() < 410:
+            return 0.75
+        else:
+            return 1
+    elif position == "right":
+        if sensor.value() < 248:
+            return 0
+        elif sensor.value() < 370:
+            return 0.25
+        elif sensor.value() < 430:
+            return 0.5
+        elif sensor.value() < 455:
+            return 0.75
+        else:
+            return 1
     else:
-        return False
+        if sensor.value() < 45:
+            return 0
+        elif sensor.value() < 120:
+            return 0.25
+        elif sensor.value() < 220:
+            return 0.5
+        elif sensor.value() < 400:
+            return 0.75
+        else:
+            return 1
 
 
 def line_correction_needed():

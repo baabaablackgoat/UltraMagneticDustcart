@@ -1,3 +1,9 @@
+#DATEN KÖNNTEN VERALTET SEIN
+
+#IM ZWEIFEL NICHT NUTZEN!!!!!!!!!!!!
+
+#PENIS
+
 #Lichtsensoren
 Bei REFLECT bzw Farbsensor auf COL-REFLECT sind ROTE Lichter an.
 Blaues Licht beim Farbsensor bedeutet COL-AMBIENT und scheint ungenaue Ergebnisse zurückzugeben.
