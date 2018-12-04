@@ -17,6 +17,8 @@ MOTOR_LEFT = OUTPUT_A
 MOTOR_RIGHT = OUTPUT_B
 #motorBasket = Motor(OUTPUT_C)
 
+soundemitter = Sound()
+
 try:
     LIGHT_LEFT = Sensor(INPUT_4)
     COLOR_MIDDLE = Sensor(INPUT_3)
@@ -33,7 +35,7 @@ COLOR_MIDDLE.mode = "COL-REFLECT"
 COLOR_THRESHOLD = 170
 LIGHT_THRESHOLD = 350
 
-NORMAL_SPEED = 20
+NORMAL_SPEED = 30
 
 previous_action = False
 
@@ -48,7 +50,7 @@ def drive_normal_speed():
 
 
 def is_color_white(sensor):
-    return sensor.value() >= COLOR_THRESHOLD
+    return sensor.value() * 10 >= COLOR_THRESHOLD
 
 
 def is_light_white(sensor):
@@ -93,34 +95,51 @@ def sensor_percentage(sensor, position):
 
 def line_correction_needed():
     global previous_action
-    if not is_color_white(COLOR_MIDDLE): #? B ?
-        if (not is_light_white(LIGHT_LEFT)) and is_light_white(LIGHT_RIGHT): #B B W
-            previous_action = "left"
-            return "left"
-        elif is_light_white(LIGHT_LEFT) and (not is_light_white(LIGHT_RIGHT)): #W B B
-            previous_action = "right"
-            return "right"
-        else: #W B W
-            previous_action = False
-            return False
-    else: #color sensor is on white
+    #if not is_color_white(COLOR_MIDDLE): #? B ?
+    #debug_print("color_black"+str(COLOR_MIDDLE.value()))
+    if (not is_light_white(LIGHT_LEFT)) and is_light_white(LIGHT_RIGHT): #B x W
+        previous_action = "left"
+        return "left"
+    elif is_light_white(LIGHT_LEFT) and (not is_light_white(LIGHT_RIGHT)): #W x B
+        previous_action = "right"
+        return "right"
+    elif is_color_white(COLOR_MIDDLE) and is_light_white(LIGHT_LEFT) and is_light_white(LIGHT_RIGHT): #W W W
+        if previous_action == "left":
+            return "offtrack-left"
+        elif previous_action == "right":
+            return "offtrack-right"
+    else:
+        previous_action = None
+        return False
+    #else: #color sensor is on white
+        """
+        debug_print("color_white"+str(COLOR_MIDDLE.value()))
         if previous_action == "left":
             return "offtrack-left"
         elif previous_action == "right":
             return "offtrack-right"
         else:
             return "event"
+        """
+        
+
+def set_center_linestate():
+    pass
 
 
 def correct_path(state):
     if state == "right":
         drive.on(NORMAL_SPEED , 0)
+        #soundemitter.tone([(300, 300, 100)])
     elif state == "offtrack-right":
         drive.on(NORMAL_SPEED, math.floor(NORMAL_SPEED*-0.2))
+        #soundemitter.tone([(300, 50, 100),(300, 50, 100)])
     elif state == "left":
         drive.on(0, NORMAL_SPEED)
+        #soundemitter.tone([(450, 300, 100)])
     elif state == "offtrack-left":
         drive.on(math.floor(NORMAL_SPEED*-0.2), NORMAL_SPEED)
+        #soundemitter.tone([(450, 50, 100),(450, 50, 100)])
     elif state == "event":
         drive.on(NORMAL_SPEED,NORMAL_SPEED)
     else:
