@@ -3,7 +3,7 @@ from ev3dev2.motor import OUTPUT_A, OUTPUT_B, OUTPUT_C, MoveTank, Motor
 from ev3dev2.sensor import INPUT_1, INPUT_2, INPUT_3, INPUT_4, Sensor
 from ev3dev2.sound import Sound
 from ev3dev2 import fonts
-import sys, os, math
+import sys, os, math, time
 def debug_print(*args, **kwargs):
     '''Print debug messages to stderr.
 
@@ -15,7 +15,7 @@ os.system('setfont ' + 'Lat15-Terminus12x6')
 
 MOTOR_LEFT = OUTPUT_A
 MOTOR_RIGHT = OUTPUT_B
-#motorBasket = Motor(OUTPUT_C)
+MOTOR_BASKET = Motor(OUTPUT_C)
 
 soundemitter = Sound()
 
@@ -31,15 +31,23 @@ except Exception as e:
 
 LIGHT_LEFT.mode = LIGHT_RIGHT.mode = "REFLECT"
 COLOR_MIDDLE.mode = "COL-REFLECT"
+DISTANCE_FRONT.mode = "US-DIST-CM"
 
 COLOR_THRESHOLD = 170
 LIGHT_THRESHOLD = 350
 
 NORMAL_SPEED = 30
 
-program_position = 0
-# 0 before uturn, 1 before roadblock, 2 before pushing the block, 3 before dropoff
+program_position = 3
+
 previous_action = False
+
+last_three_white_passages = [30, 20, 10]
+recently_added = False
+roadblock_detected = False
+ball_dropoff_detected = False
+block_pushed = False
+back_on_track_reached = False
 
 try:
     drive = MoveTank(MOTOR_LEFT, MOTOR_RIGHT)
@@ -58,6 +66,13 @@ def is_color_white(sensor):
 def is_light_white(sensor):
     return sensor.value() >= LIGHT_THRESHOLD
 
+def get_distance():
+    return DISTANCE_FRONT.value() / 10
+
+def add_new_white_passage():
+    last_three_white_passages[2] = last_three_white_passages[1]
+    last_three_white_passages[1] = last_three_white_passages[0]
+    last_three_white_passages[0] = time.time()
 
 def line_correction_needed():
     global previous_action
@@ -68,6 +83,7 @@ def line_correction_needed():
         previous_action = "right"
         return "right"
     elif is_color_white(COLOR_MIDDLE) and is_light_white(LIGHT_LEFT) and is_light_white(LIGHT_RIGHT): #W W W
+        check_and_drive_first_uturn()
         if previous_action == "left":
             return "offtrack-left"
         elif previous_action == "right":
@@ -96,21 +112,97 @@ def correct_path(state):
         drive.on(NORMAL_SPEED,NORMAL_SPEED)
 
 
-
-def u_turn():
-    drive.on_for_degrees(NORMAL_SPEED, NORMAL_SPEED * -1, 180)
-
-def push_block():
-    pass
+def check_and_drive_first_uturn():
+    global program_position
+    if program_position == 0:
+        drive.on_for_seconds(NORMAL_SPEED, NORMAL_SPEED, 0.25)
+        drive.on_for_rotations(left_speed=-50, right_speed=50, rotations=1)
+        drive.on(NORMAL_SPEED, NORMAL_SPEED)
+        while(is_color_white(COLOR_MIDDLE) and is_light_white(LIGHT_LEFT) and is_light_white(LIGHT_RIGHT)):
+            pass
+        program_position = 1
 
 def wait_on_roadblock():
-    pass
+    global program_position, roadblock_detected
+    if program_position == 1:
+        while(get_distance() < 5):
+            roadblock_detected = True
+            drive.off()
+        if roadblock_detected:
+            drive.on(NORMAL_SPEED, NORMAL_SPEED)
+            program_position = 2
 
-def ball_dropoff():
-    pass
+def detect_crosswalk():
+    global recently_added, program_position
+    if program_position == 2:
+        debug_print(last_three_white_passages)
+        debug_print(recently_added)
+        debug_print(is_color_white(COLOR_MIDDLE))
+        debug_print("sensors:", LIGHT_LEFT.value(), COLOR_MIDDLE.value(), LIGHT_RIGHT.value())
+        if not recently_added and is_color_white(COLOR_MIDDLE) and is_light_white(LIGHT_LEFT) and is_light_white(LIGHT_RIGHT):
+            add_new_white_passage()
+            recently_added = True
+        if not is_color_white(COLOR_MIDDLE) or not is_color_white(LIGHT_LEFT) or not is_color_white(LIGHT_RIGHT):
+            recently_added = False
+        if (last_three_white_passages[0] - last_three_white_passages[1]) < 2:
+            debug_print(last_three_white_passages)
+            debug_print(last_three_white_passages[0] - last_three_white_passages[2])
+            debug_print(is_color_white(COLOR_MIDDLE))
+            drive.on_for_rotations(left_speed=50, right_speed=-50, rotations=0.5)
+            drive.on_for_seconds(NORMAL_SPEED, NORMAL_SPEED, 0.25)
+            program_position = 3
 
+def push_block():
+    global program_position, block_pushed
+    if program_position == 3:
+        while(get_distance() < 15):
+            state = line_correction_needed()
+            correct_path(state)
+            block_pushed = True
+        if block_pushed:
+            drive.on_for_seconds(-30, -30, 1)
+            drive.on_for_rotations(left_speed=-50, right_speed=50, rotations=1)
+            program_position = 4
+
+def get_back_on_track(state):
+    global program_position, back_on_track_reached
+    if program_position == 4:
+        while is_color_white(COLOR_MIDDLE) and is_light_white(LIGHT_LEFT) and is_light_white(LIGHT_RIGHT) and state != "offtrack-left" and state != "offtrack-right":
+            drive.on(NORMAL_SPEED, NORMAL_SPEED)
+            back_on_track_reached = True
+        if back_on_track_reached:
+            drive.on_for_rotations(left_speed=50, right_speed=-50, rotations=0.5)
+            drive.on_for_seconds(NORMAL_SPEED, NORMAL_SPEED, 0.25)
+            program_position = 5
+    
+
+def ball_dropoff(state):
+    global program_position, ball_dropoff_detected
+    if program_position == 5:
+        if not is_color_white(COLOR_MIDDLE) and not is_light_white(LIGHT_LEFT) and not is_light_white(LIGHT_RIGHT):
+            ball_dropoff_detected = True
+        if ball_dropoff_detected and state != "offtrack-left" and state != "offtrack-right":
+            while True:
+                state = line_correction_needed()
+                correct_path(state)
+                if get_distance() < 4:
+                    drive.off()
+                    MOTOR_BASKET.on_for_degrees(-10, 60)
+            return True
+    return False
+
+
+MOTOR_BASKET.on_for_seconds(10, 0.75)
 
 while True:
     state = line_correction_needed()
-    print(state)
+    get_back_on_track(state)
     correct_path(state)
+
+    debug_print(program_position)
+
+    wait_on_roadblock()
+    detect_crosswalk()
+    push_block()
+    if ball_dropoff(state):
+        break

@@ -37,6 +37,13 @@ def chain_exception(exception, cause):
     else:
         raise exception from cause
 
+try:
+    # if we are in a released build, there will be an auto-generated "version"
+    # module
+    from .version import __version__
+except ImportError:
+    __version__ = "<unknown>"
+
 import os
 import io
 import fnmatch
@@ -44,10 +51,6 @@ import re
 import stat
 import errno
 from os.path import abspath
-
-INPUT_AUTO = ''
-OUTPUT_AUTO = ''
-
 
 def get_current_platform():
     """

@@ -20,6 +20,7 @@ Motor.on_for_seconds(deine,mudda) unterbricht den Pythoncode!!!1!1!eins!
 Rad(ab)stand L/R = 16cm (Mitte zu Mitte)
 Radhöhe = 8.25cm (mit Gummi)
 Radumfang ~ 25.9cm =^= 1 Umdrehung
+Drehkreis = 2 * pi * 16
 
 #Strichbreite
 5cm
