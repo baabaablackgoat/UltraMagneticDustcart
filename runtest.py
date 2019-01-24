@@ -38,7 +38,7 @@ LIGHT_THRESHOLD = 350 # 400 - 170
 
 NORMAL_SPEED = 35
 
-program_position = 5
+program_position = 0
 
 previous_action = False
 
@@ -96,13 +96,13 @@ def line_correction_needed():
 
 def correct_path(state):
     if state == "right":
-        drive.on(NORMAL_SPEED , -5)
+        drive.on(NORMAL_SPEED , math.floor(NORMAL_SPEED * (-1/7)))
         #soundemitter.tone([(300, 300, 100)])
     elif state == "offtrack-right":
         drive.on(NORMAL_SPEED, math.floor(NORMAL_SPEED*-0.25))
         #soundemitter.tone([(300, 50, 100),(300, 50, 100)])
     elif state == "left":
-        drive.on(-5, NORMAL_SPEED)
+        drive.on(math.floor(NORMAL_SPEED * (-1/7)), NORMAL_SPEED)
         #soundemitter.tone([(450, 300, 100)])
     elif state == "offtrack-left":
         drive.on(math.floor(NORMAL_SPEED*-0.25), NORMAL_SPEED)
@@ -117,6 +117,7 @@ def check_and_drive_first_uturn():
     global program_position
     if program_position == 0:
         drive.on_for_seconds(NORMAL_SPEED, NORMAL_SPEED, 0.25)
+        drive.on_for_seconds(-1 * NORMAL_SPEED, -1 * NORMAL_SPEED, 0.5)
         drive.on_for_rotations(left_speed=-50, right_speed=50, rotations=1)
         drive.on(NORMAL_SPEED, NORMAL_SPEED)
         while(is_color_white(COLOR_MIDDLE) and is_light_white(LIGHT_LEFT) and is_light_white(LIGHT_RIGHT)):
@@ -133,7 +134,8 @@ def wait_on_roadblock():
             roadblock_detected = True
             drive.off()
         if roadblock_detected:
-            NORMAL_SPEED = math.floor(NORMAL_SPEED * 0.8)
+            # NORMAL_SPEED = math.floor(NORMAL_SPEED * 1.25)
+            MOTOR_BASKET.on(5)
             drive.on(NORMAL_SPEED, NORMAL_SPEED)
             program_position = 2
             soundemitter.tone(1500, 500, play_type="PLAY_NO_WAIT_FOR_COMPLETE")
@@ -156,37 +158,46 @@ def detect_crosswalk(state):
             #debug_print(last_three_white_passages)
             #debug_print(last_three_white_passages[0] - last_three_white_passages[2])
             #debug_print(is_color_white(COLOR_MIDDLE))
-            NORMAL_SPEED = math.floor(NORMAL_SPEED * 1.25)
-            drive.on_for_rotations(left_speed=50, right_speed=-50, rotations=0.5)
-            drive.on_for_seconds(NORMAL_SPEED, NORMAL_SPEED, 0.25)
+            # NORMAL_SPEED = math.floor(NORMAL_SPEED / 1.25)
+            MOTOR_BASKET.off()
+            drive.on_for_rotations(left_speed=25, right_speed=-25, rotations=0.5)
+            drive.on_for_seconds(NORMAL_SPEED, NORMAL_SPEED, 0.5)
             program_position = 3
             soundemitter.tone(1500, 500, play_type="PLAY_NO_WAIT_FOR_COMPLETE")
 
 
 # After turning onto the T-crossing, push block and do a U-Turn
 def push_block():
-    global program_position, block_pushed
+    global program_position, block_pushed, NORMAL_SPEED
     if program_position == 3:
-        while(get_distance() < 15):
-            state = line_correction_needed()
-            correct_path(state)
-            block_pushed = True
+        if get_distance() < 6:
+            while(get_distance() < 15):
+                state = line_correction_needed()
+                correct_path(state)
+                block_pushed = True
         if block_pushed:
-            drive.on_for_seconds(-30, -30, 1)
-            drive.on_for_rotations(left_speed=-50, right_speed=50, rotations=1)
+            drive.on_for_seconds(-30, -30, 0.3)
+            drive.on_for_rotations(left_speed = -25, right_speed = 25, rotations = 0.5)
+            drive.on_for_rotations(left_speed=20, right_speed = 20, rotations = 0.3)
+            drive.on_for_rotations(left_speed = -25, right_speed = 25, rotations = 0.5)
+            """
+            for i in range(2):
+                drive.on_for_rotations(left_speed=1, right_speed=20, rotations=0.25)
+                drive.on_for_rotations(left_speed=-20, right_speed=1, rotations=0.25)
+            """
             program_position = 4
             soundemitter.tone(1500, 500, play_type="PLAY_NO_WAIT_FOR_COMPLETE")
 
 # After pushing the block, return to line and turn right
 def get_back_on_track(state):
-    global program_position, back_on_track_reached
+    global program_position, back_on_track_reached, NORMAL_SPEED
     if program_position == 4:
         while is_color_white(COLOR_MIDDLE) and is_light_white(LIGHT_LEFT) and is_light_white(LIGHT_RIGHT) and state != "offtrack-left" and state != "offtrack-right":
             drive.on(NORMAL_SPEED, NORMAL_SPEED)
             back_on_track_reached = True
         if back_on_track_reached:
-            drive.on_for_rotations(left_speed=50, right_speed=-50, rotations=0.5)
             drive.on_for_seconds(NORMAL_SPEED, NORMAL_SPEED, 0.25)
+            drive.on_for_rotations(left_speed=30, right_speed=-30, rotations=0.5)
             program_position = 5
             soundemitter.tone(1500, 500, play_type="PLAY_NO_WAIT_FOR_COMPLETE")
     
@@ -204,7 +215,8 @@ def ball_dropoff(state):
                 if get_distance() < 4:
                     drive.off()
                     MOTOR_BASKET.on_for_seconds(10, 0.5)
-                    MOTOR_BASKET.on_for_degrees(-5, 78)
+                    MOTOR_BASKET.on_for_seconds(-5, 2)
+                    soundemitter.play_file("victory.wav")
                     return True
     return False
 
@@ -212,7 +224,7 @@ def ball_dropoff(state):
 # Main program starts here.
 # Reset basket
 MOTOR_BASKET.on_for_seconds(10, 0.75)
-MOTOR_BASKET.on_for_degrees(-10, 40)
+MOTOR_BASKET.on_for_degrees(-10, 50)
 
 # Main execution loop
 while True:
