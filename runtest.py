@@ -131,9 +131,12 @@ def check_and_drive_first_uturn():
 def wait_on_roadblock():
     global program_position, roadblock_detected, NORMAL_SPEED
     if program_position == 1:
-        while(get_distance() < 8):
-            roadblock_detected = True
+        if get_distance() < 5:
             drive.off()
+            time.sleep(1)
+            while(get_distance() < 10):
+                roadblock_detected = True
+                drive.off()
         if roadblock_detected:
             # NORMAL_SPEED = math.floor(NORMAL_SPEED * 1.25)
             drive.on(NORMAL_SPEED, NORMAL_SPEED)
